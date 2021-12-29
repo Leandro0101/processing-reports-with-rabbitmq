@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  api:
+    restart: always
+    container_name: api 
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    ports: 
+      - ${APP_PORT}:${APP_PORT}
+    volumes:
+      - ./api:/api
+    depends_on: 
+      - rabbitmq
+    environment:
+      - APP_PORT=${APP_PORT}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+  worker:
+    restart: always
+    container_name: worker 
+    build: 
+      context: .
+      dockerfile: Dockerfile.worker
+    volumes:
+      - ./worker:/worker
+    depends_on: 
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+  rabbitmq:
+    image: 'rabbitmq:3.8-management-alpine'
+    container_name: nodejs-rabbitmq-rabbitmq
+    hostname: rabbitmq
+    ports:
+      - '15672:15672'
+      - '5672:5672'
+    volumes:
+      - './.rabbitmq_data:/var/lib/rabbitmq/mnesia'
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
